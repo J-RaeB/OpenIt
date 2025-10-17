@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>💕 A Cute Surprise — Rae</title>
+
+<!-- Optional: nice playful font -->
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --pink:#ffd7e6;
+    --accent:#ff4f95;
+    --soft:#fff6fb;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    font-family: "Baloo 2", "Comic Sans MS", cursive, Arial;
+    background: linear-gradient(180deg, #ffdff0 0%, #ffcce7 100%);
+    color: var(--accent);
+  }
+
+  /* full-center container for everything */
+  .stage{
+    height:100vh;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+  }
+
+  /* basic card that centers content and restricts width so text is readable */
+  .card{
+    width:90%;
+    max-width:820px;
+    min-height:420px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,250,253,0.9));
+    border-radius:20px;
+    box-shadow: 0 10px 40px rgba(255,100,150,0.12);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:28px;
+    text-align:center;
+    position:relative;
+  }
+
+  /* screens (tabs) inside the card */
+  .screen{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:18px;
+    padding:28px;
+    transition: opacity .6s ease, transform .6s ease;
+    opacity:0;
+    pointer-events:none;
+  }
+  .screen.active{
+    opacity:1;
+    pointer-events:auto;
+  }
+  .screen.enter {
+    transform: translateY(6px);
+  }
+
+  h1{
+    margin:0;
+    font-size:2.0rem;
+    color:var(--accent);
+  }
+  p.lead{
+    margin:8px 0 0 0;
+    font-size:1.05rem;
+    color:#a42a67;
+  }
+
+  /* buttons style */
+  .btn-row{
+    display:flex;
+    gap:14px;
+    margin-top:16px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  button.btn{
+    background: white;
+    color:var(--accent);
+    border:2px solid var(--accent);
+    padding:10px 18px;
+    border-radius:26px;
+    font-size:1.05rem;
+    cursor:pointer;
+    transition: transform .12s ease, box-shadow .12s;
+    min-width:110px;
+  }
+  button.btn:active{ transform: scale(.98) }
+  button.btn:hover{
+    transform:translateY(-4px) scale(1.02);
+    box-shadow:0 8px 20px rgba(255,79,149,0.12);
+  }
+
+  /* input & choice grid for riddle */
+  .choices{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    justify-content:center;
+    margin-top:8px;
+  }
+  .choice{
+    background:var(--soft);
+    border-radius:14px;
+    padding:10px 14px;
+    border:1px dashed rgba(255,79,149,0.18);
+    cursor:pointer;
+    font-weight:600;
+    color:#8b285e;
+    min-width:120px;
+    text-align:center;
+  }
+  .choice:hover{ transform:translateY(-6px); transition:.16s }
+
+  /* the ghost container (centered) */
+  .ghost-wrap{
+    width:240px;
+    height:260px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+
+  /* Ghost base */
+  .ghost{
+    position:relative;
+    width:160px;
+    height:160px;
+    background: white;
+    border-radius: 50% 50% 22% 22%;
+    filter: drop-shadow(0 14px 30px rgba(255,64,140,0.10));
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    transform-origin:center;
+    z-index:6;
+    /* combined float: up-down + subtle side */
+    animation: floatY 3.6s ease-in-out infinite, floatX 6s ease-in-out infinite;
+  }
+
+  /* ghost bottom frill */
+  .ghost::after{
+    content:"";
+    position:absolute;
+    bottom:-8px;
+    left:8%;
+    width:84%;
+    height:30px;
+    background:white;
+    border-radius: 0 0 40% 40%;
+  }
+
+  /* eyes */
+  .eye{
+    position:absolute;
+    top:48px;
+    width:18px;
+    height:22px;
+    background:#555;
+    border-radius:50%;
+    box-shadow: inset -3px -4px 0 rgba(0,0,0,0.05);
+  }
+  .eye.left{ left:44px }
+  .eye.right{ right:44px }
+
+  /* blush */
+  .blush{
+    position:absolute;
+    top:84px;
+    width:24px;
+    height:12px;
+    background: linear-gradient(90deg,#ffb6d3,#ffc9e6);
+    border-radius:6px;
+    opacity:.9;
+  }
+  .blush.left{ left:28px }
+  .blush.right{ right:28px }
+
+  /* heart hairpin (rotated square) */
+  .heart{
+    position:absolute;
+    top:-12px;
+    left:110px;
+    width:22px;
+    height:22px;
+    background:var(--accent);
+    transform: rotate(45deg) scale(1);
+    border-radius:50% 0 50% 0;
+    z-index:8;
+    box-shadow:0 6px 12px rgba(255,79,149,0.12);
+    animation: heartBeat 1.6s infinite;
+  }
+
+  @keyframes heartBeat{
+    0%{ transform: rotate(45deg) scale(.98) }
+    50%{ transform: rotate(45deg) scale(1.12) }
+    100%{ transform: rotate(45deg) scale(.98) }
+  }
+
+  @keyframes floatY{
+    0%,100%{ transform: translateY(0) }
+    50%{ transform: translateY(-18px) }
+  }
+  @keyframes floatX{
+    0%{ transform: translateX(0) }
+    25%{ transform: translateX(6px) }
+    50%{ transform: translateX(0) }
+    75%{ transform: translateX(-6px) }
+    100%{ transform: translateX(0) }
+  }
+
+  /* sparkling hearts floating up behind ghost */
+  .sparkles{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    z-index:4;
+  }
+
+  .sparkle{
+    position:absolute;
+    width:18px;
+    height:18px;
+    background: radial-gradient(circle at 30% 20%, #fff, rgba(255,255,255,0.6) 20%, rgba(255,0,120,0.9) 60%);
+    transform: rotate(45deg);
+    border-radius: 4px;
+    opacity:0.95;
+    filter: drop-shadow(0 8px 18px rgba(255,79,149,0.08));
+    animation: sparkleUp linear infinite;
+  }
+  @keyframes sparkleUp{
+    0%{ transform: translateY(30px) scale(.7) rotate(45deg); opacity:0; }
+    10%{ opacity:1 }
+    100%{ transform: translateY(-220px) scale(1.1) rotate(45deg); opacity:0; }
+  }
+
+  /* the message text area (justified) */
+  .messageBox{
+    width:85%;
+    max-width:720px;
+    text-align:justify;
+    font-size:1.12rem;
+    color:#7a2552;
+    line-height:1.6;
+    margin-top:12px;
+  }
+
+  /* final flower animation: small flower element inside ghost's "hand" */
+  .flower{
+    position:absolute;
+    bottom:18px;
+    left:46%;
+    transform:translateX(-50%) scale(0.0);
+    width:48px;
+    height:48px;
+    z-index:9;
+    transition: transform .8s cubic-bezier(.2,.85,.3,1), opacity .6s;
+  }
+  .flower.show{ transform:translateX(-50%) scale(1); opacity:1 }
+  .flower svg{ width:100%; height:100% }
+
+  /* final page text */
+  .final-note{
+    margin-top:18px;
+    font-size:1.05rem;
+    color:#7a2552;
+    text-align:center;
+  }
+
+  /* audio play overlay if autoplay blocked */
+  .play-overlay{
+    position:fixed;
+    left:0; right:0; bottom:20px;
+    display:flex;
+    justify-content:center;
+    z-index:999;
+  }
+  .play-btn{
+    background:linear-gradient(90deg,#ff8ab0,#ff5a95);
+    color:white;
+    border:none;
+    padding:12px 18px;
+    border-radius:999px;
+    font-weight:700;
+    box-shadow:0 10px 30px rgba(255,80,140,0.18);
+    cursor:pointer;
+  }
+
+  /* small responsive adjustments */
+  @media (max-width:560px){
+    .ghost-wrap{ width:180px; height:200px }
+    .ghost{ width:130px; height:130px }
+    .heart{ left:94px }
+    .card{ padding:18px; min-height:520px }
+  }
+
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="card" role="main" aria-live="polite">
+
+      <!-- SCREEN 1: Question 1 -->
+      <section id="s1" class="screen active enter" aria-hidden="false">
+        <h1>Do you love me? 💕</h1>
+        <p class="lead">Please be honest (but the only correct answer is "Yes")</p>
+        <div class="btn-row">
+          <button class="btn" onclick="handleYes(1)">Yes 💖</button>
+          <button class="btn" onclick="handleNo()">No 😤</button>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: Question 2 -->
+      <section id="s2" class="screen" aria-hidden="true">
+        <h1>Will you spend some time with me?</h1>
+        <p class="lead">Even a little time means a lot 🌸</p>
+        <div class="btn-row">
+          <button class="btn" onclick="handleYes(2)">Yes 💖</button>
+          <button class="btn" onclick="handleNo()">No 😤</button>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: Riddle choices -->
+      <section id="s3" class="screen" aria-hidden="true">
+        <h1>Riddle time 💘</h1>
+        <p class="lead">What’s something sweet, and makes my heart skip a beat?</p>
+
+        <div class="choices" role="list">
+          <div class="choice" onclick="handleRiddle('Chocolate')">Chocolate</div>
+          <div class="choice" onclick="handleRiddle('Coffee')">Coffee</div>
+          <div class="choice" onclick="handleRiddle('Ice cream')">Ice cream</div>
+        </div>
+
+        <p class="lead" style="margin-top:12px; font-size:.98rem; color:#9c365f;">
+          (Choose the answer that makes your heart smile!)
+        </p>
+      </section>
+
+      <!-- SCREEN 3.5: "No silly — it's YOU" intermediate screen when wrong riddle chosen -->
+      <section id="s3b" class="screen" aria-hidden="true">
+        <h1>No silly — it's YOU 💕</h1>
+        <p class="lead">Told you — now come see the surprise!</p>
+        <div class="btn-row">
+          <button class="btn" onclick="goTo('message')">Okay! ✨</button>
+        </div>
+      </section>
+
+      <!-- MESSAGE SCREEN (after successful sequence) -->
+      <section id="message" class="screen" aria-hidden="true">
+        <div class="ghost-wrap" aria-hidden="true">
+          <div class="sparkles" id="sparkles"></div>
+
+          <div class="ghost" id="mainGhost" aria-hidden="true">
+            <div class="heart" aria-hidden="true"></div>
+            <div class="eye left"></div>
+            <div class="eye right"></div>
+            <div class="blush left"></div>
+            <div class="blush right"></div>
+            <!-- flower placeholder (hidden until final) -->
+            <div class="flower" id="flower">
+              <!-- simple flower SVG -->
+              <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <g transform="translate(8,6)">
+                  <circle cx="24" cy="18" r="6" fill="#fff5f9" stroke="#ff9ccf" stroke-width="2"/>
+                  <path d="M24 2 C22 -2, 16 -2, 14 2 C12 6,16 10,20 10 C24 10,28 6,26 2 Z" fill="#ff6a9e"/>
+                  <path d="M8 14 C6 10,2 8,2 14 C2 20,8 20,10 16 C12 12,10 8,8 14 Z" fill="#ff9ccf"/>
+                  <path d="M40 14 C42 10,46 8,46 14 C46 20,40 20,38 16 C36 12,38 8,40 14 Z" fill="#ff9ccf"/>
+                  <rect x="22" y="26" width="4" height="26" rx="2" fill="#b47b6a"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="messageBox" id="messageText">
+          <p>
+            I just wanted to let you know that you're the most cute guy I knew after a long time.
+            I hope we can spend some time together 💗
+          </p>
+        </div>
+
+        <div class="btn-row" style="margin-top:18px;">
+          <button class="btn" onclick="goTo('final')">Next ✨</button>
+        </div>
+      </section>
+
+      <!-- FINAL PAGE: ghost gives flowers and message -->
+      <section id="final" class="screen" aria-hidden="true">
+        <div class="ghost-wrap" aria-hidden="true">
+          <div class="sparkles" id="sparklesFinal"></div>
+
+          <div class="ghost" id="finalGhost" aria-hidden="true" style="transform-origin:center;">
+            <div class="heart"></div>
+            <div class="eye left"></div>
+            <div class="eye right"></div>
+            <div class="blush left"></div>
+            <div class="blush right"></div>
+
+            <!-- flower becomes visible here -->
+            <div class="flower" id="flowerFinal" aria-hidden="true">
+              <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <g transform="translate(8,6)">
+                  <circle cx="24" cy="18" r="6" fill="#fff5f9" stroke="#ff9ccf" stroke-width="2"/>
+                  <path d="M24 2 C22 -2, 16 -2, 14 2 C12 6,16 10,20 10 C24 10,28 6,26 2 Z" fill="#ff6a9e"/>
+                  <path d="M8 14 C6 10,2 8,2 14 C2 20,8 20,10 16 C12 12,10 8,8 14 Z" fill="#ff9ccf"/>
+                  <path d="M40 14 C42 10,46 8,46 14 C46 20,40 20,38 16 C36 12,38 8,40 14 Z" fill="#ff9ccf"/>
+                  <rect x="22" y="26" width="4" height="26" rx="2" fill="#b47b6a"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="messageBox" style="text-align:center;">
+          <p style="font-weight:700; margin-bottom:8px;">Flowers for the cute guy 🌸</p>
+          <p class="final-note">
+            Make sure to take care of yourself always,<br>
+            <strong>xoxo — Rae 💐</strong>
+          </p>
+        </div>
+      </section>
+
+    </div> <!-- end card -->
+  </div> <!-- end stage -->
+
+<script>
+/* ==========================
+   Simple single-page nav
+   ========================== */
+const screens = ['s1','s2','s3','s3b','message','final'];
+function show(id){
+  screens.forEach(s=>{
+    const el = document.getElementById(s);
+    if(!el) return;
+    if(s === id){
+      el.classList.add('active');
+      el.setAttribute('aria-hidden','false');
+    } else {
+      el.classList.remove('active','enter');
+      el.setAttribute('aria-hidden','true');
+    }
+  });
+}
+
+/* handle yes/no */
+function handleYes(number){
+  if(number === 1) { show('s2'); }
+  else if(number === 2) { show('s3'); }
+}
+
+/* exact required No error message */
+function handleNo(){
+  // show the required string
+  alert("Oh Oh that's not the correct answer, please try again.");
+  // remain on the same screen (user can try again)
+}
+
+/* riddle handling */
+function handleRiddle(choice){
+  const correct = (choice.toLowerCase() === 'you');
+  if(correct){
+    // go to message
+    show('message');
+  } else {
+    // show the "No silly - it's YOU" intermediate tab
+    show('s3b');
+  }
+}
+
+/* goTo helper for explicit nav */
+function goTo(id){
+  show(id);
+  if(id === 'final'){
+    // show the flower giving animation shortly
+    setTimeout(()=> {
+      const f = document.getElementById('flowerFinal');
+      if(f) f.classList.add('show');
+      // make final ghost do a little 'present' move
+      const g = document.getElementById('finalGhost');
+      if(g){
+        g.animate([
+          { transform: 'translateY(0) scale(1)'},
+          { transform: 'translateY(-8px) scale(1.02)'},
+          { transform: 'translateY(0) scale(1)'}
+        ], { duration: 1200, iterations: 1, easing: 'ease-in-out' });
+      }
+    }, 400);
+  }
+}
+
+/* -------------------------
+   Sparkling hearts creation
+   ------------------------- */
+function makeSparkles(containerId, count){
+  const cont = document.getElementById(containerId);
+  if(!cont) return;
+  cont.innerHTML = '';
+  for(let i=0;i<count;i++){
+    const s = document.createElement('div');
+    s.className='sparkle';
+    // random horizontal position around center area
+    const startX = 30 + Math.random()*40; // percent
+    const offset = (Math.random()-0.5)*40;
+    s.style.left = (48 + offset) + '%';
+    s.style.bottom = (10 + Math.random()*20) + 'px';
+    const dur = 3500 + Math.random()*2500;
+    s.style.animationDuration = dur + 'ms';
+    s.style.opacity = 0.9 - Math.random()*0.3;
+    cont.appendChild(s);
+  }
+}
+
+// create sparkles for both screens
+makeSparkles('sparkles', 8);
+makeSparkles('sparklesFinal', 12);
+
+/* =========================
+   Audio autoplay handling
+   ========================= */
+const bgAudio = document.getElementById('bgAudio');
+const audioOverlay = document.getElementById('audioOverlay');
+
+// Try autoplay (some browsers block autoplay without user gesture)
+function tryAutoPlay(){
+  bgAudio.play().then(()=> {
+    // playing fine
+    audioOverlay.style.display = 'none';
+  }).catch((err)=>{
+    // autoplay blocked -> show overlay button
+    audioOverlay.style.display = 'flex';
+  });
+}
+
+// call on load
+tryAutoPlay();
+
+// manual play method (for overlay)
+function playAudio(){
+  bgAudio.play().then(()=>{
+    audioOverlay.style.display = 'none';
+  }).catch(()=> {
+    // still blocked (rare) - keep showing overlay
+    audioOverlay.style.display = 'flex';
+  });
+}
+
+/* Make sure music continues seamlessly (single-page app ensures same element) */
+
+// optional: pause when page hidden to save resources
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden) {
+    // keep playing for user experience? We'll keep it playing.
+    // bgAudio.pause();
+  } else {
+    // bgAudio.play();
+  }
+});
+
+/* keyboard accessibility: allow Enter to press focused button */
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    const active = document.activeElement;
+    if(active && active.click) active.click();
+  }
+});
+
+/* ensure initial screen centered fully (good on mobiles) */
+window.addEventListener('resize', ()=>{ /* no-op for now */ });
+
+</script>
+</body>
+</html>
